@@ -52,7 +52,7 @@ app.use(
   // Passport middleware
   app.use(passport.initialize());
   app.use(passport.session());
-  // require('./configs/passport')(passport);
+  require('./configs/passport')(passport);
   
   // Connect flash
   app.use(flash());

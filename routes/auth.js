@@ -1,5 +1,5 @@
 const express = require("express");
-
+const passport = require("passport-local");
 
 const {
   register,
@@ -24,7 +24,35 @@ router
   .route("/register")
   .get(forwardAuthenticated, registerForm)
   .post(register);
-router.route("/login").get(forwardAuthenticated, loginForm).post(passportAuth);
+router
+  .route("/login")
+  .get(forwardAuthenticated, loginForm)
+  .post(
+    // passport.authenticate('local', {
+    //   successRedirect: '/dashboard',
+    //   failureRedirect: '/users/login',
+    //   failureFlash: true
+    // })(req, res, next)
+    // passportAuth
+    // passport.authenticate("local", {
+    //   successRedirect: "/dashboard",
+    //   failureRedirect: "/users/login",
+    //   failureFlash: true,
+    // }),
+    // function (req, res) {
+    //   res.redirect("/");
+    // }
+
+    // (req, res, next) => {
+    //   passport.authenticate('local', {
+    //     successRedirect: '/dashboard',
+    //     failureRedirect: '/users/login',
+    //     failureFlash: true
+    //   })(req, res, next);
+    // }
+
+    login
+  );
 router.route("/dashboard").get(ensureAuthenticated, dashboard);
 router.route("/logout").get(logout);
 

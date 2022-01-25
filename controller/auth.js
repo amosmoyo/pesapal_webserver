@@ -12,71 +12,68 @@ exports.register = async (req, res, next) => {
     let errors = [];
 
     if (!name || !email || !password || !password2) {
-      errors.push({ message: 'Please enter all fields' });
+      errors.push({ message: "Please enter all fields" });
     }
-  
+
     if (password != password2) {
-      errors.push({ message: 'Passwords do not match' });
+      errors.push({ message: "Passwords do not match" });
     }
-  
+
     if (password.length < 6) {
-      errors.push({ message: 'Password must be at least 6 characters' });
+      errors.push({ message: "Password must be at least 6 characters" });
     }
 
-    console.log(errors)
+    console.log(errors);
 
-    if(errors.length > 0 ) {
-      res.render('register', {
+    if (errors.length > 0) {
+      res.render("register", {
         errors,
         name,
         email,
         password,
-        password2
+        password2,
       });
     } else {
-     console.log(email)
+      console.log(email);
       const userExist = await User.findOne({ email });
 
-      console.log(userExist, 1111)
+      console.log(userExist, 1111);
 
-      if(userExist) {
-        errors.push({ message: 'Email already exists' });
-        res.render('register', {
+      if (userExist) {
+        errors.push({ message: "Email already exists" });
+        res.render("register", {
           errors,
           name,
           email,
           password,
-          password2
+          password2,
         });
       } else {
         const user = await User.create({
           name,
           email,
           password,
-          password2
+          password2,
         });
 
         user.save({ validateBeforeSave: false });
 
-        req.flash(
-          'success_msg',
-          'You are now registered and can log in'
-        );
+        req.flash("success_msg", "You are now registered and can log in");
 
-        res.redirect('/users/login');
+        res.redirect("/users/login");
 
         // const token = user.getSecret();
         // res.status(201).json({
         //   token,
         // }).redirect('/users/login');
-
       }
     }
 
     // Create use
   } catch (error) {
     return res.status(500).json({
-      message: error.message, text: 'akkakaka'
+      message: error.message,
+      text: "akkakaka",
     });
   }
 };
@@ -88,39 +85,78 @@ exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    let errors = [];
+
     // Validate emil & password
     if (!email || !password) {
-      return next(
-        new ErrorResponse("Please provide an email and password", 400)
-      );
+      // return next(
+      //   new ErrorResponse("Please provide an email and password", 400)
+      // );
+      console.log(123)
+      errors.push({ message: "Please provide an email and password" });
+      res.render("login", {
+        errors,
+        email,
+        password,
+      });
     }
 
     // Check for user
     const user = await User.findOne({ email }).select("+password");
 
+    // Check if password matches
+    // const isMatch = await user.comparePassword(password);
+
     if (!user) {
       //   return next(new ErrorResponse('Invalid credentials', 401));
-      return res.status(401).json({
-        message: "Invalid credential",
+      // return res.status(401).json({
+      //   message: "Invalid credential",
+      // });
+
+      // req.flash(
+      //   'error_msg',
+      //   'Invalid credential'
+      // );
+
+      console.log(user, 123);
+
+      errors.push({ message: "Invalid credential" });
+
+      res.render("login", {
+        errors,
+        email,
+        password,
       });
-    }
-
-    // Check if password matches
-    const isMatch = await user.comparePassword(password);
-
-    if (!isMatch) {
+    } else if (!(await user.comparePassword(password))) {
       //   return next(new ErrorResponse('Invalid credentials', 401));
-      return res.status(401).json({
-        message: "Invalid credential",
+      // return res.status(401).json({
+      //   message: "Invalid credential",
+      // });
+
+      errors.push({ message: "Invalid credential password" });
+
+      res.render("login", {
+        errors,
+        email,
+        password,
       });
+    } else {
+      const token = user.getSecret();
+
+      // res.status(201).json({
+      //   token,
+      // });
+
+      res.token = token;
+
+      console.log(user.name);
+
+      res.render("dashboard", {
+        user: user.name
+      });
+
+      // res.redirect("/users/dashboard");
     }
-
-
-    const token = user.getSecret();
-
-    res.status(201).json({
-      token,
-    });
   } catch (error) {
     return res.status(500).json({
       message: error.message,
@@ -129,31 +165,31 @@ exports.login = async (req, res, next) => {
 };
 
 exports.welcome = async (req, res, next) => {
-  res.render('welcome')
-}
+  res.render("welcome");
+};
 exports.registerForm = async (req, res, next) => {
-  res.render('register')
-}
-exports.loginForm = async (req, res, next ) => {
-  res.render('login')
-}
-exports.dashboard  = async (req, res, next) => {
-  res.render('dashboard', {
-    user: req.user
-  })
-}
+  res.render("register");
+};
+exports.loginForm = async (req, res, next) => {
+  res.render("login");
+};
+exports.dashboard = async (req, res, next) => {
+  res.render("dashboard", {
+    user: req.user,
+  });
+};
 
 exports.passportAuth = async (req, res, next) => {
-  passport.authenticate('local', {
-    successRedirect: '/users/dashboard',
-    failureRedirect: '/users/login',
-    failureFlash: true
+  passport.authenticate("local", {
+    successRedirect: "/users/dashboard",
+    failureRedirect: "/users/login",
+    failureFlash: true,
   })(req, res, next);
-}
+};
 
 // Logout
-exports.logout =  async (req, res, next) => {
+exports.logout = async (req, res, next) => {
   req.logout();
-  req.flash('success_msg', 'You are logged out');
-  res.redirect('/users/login');
-}
+  req.flash("success_msg", "You are logged out");
+  res.redirect("/users/login");
+};
